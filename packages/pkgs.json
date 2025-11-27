@@ -1,0 +1,12 @@
+[
+ {
+  "path": "/packages/iot/kawaii-mqtt", 
+  "ver": "latest", 
+  "name": "KAWAII_MQTT"
+ }, 
+ {
+  "path": "/packages/peripherals/at24cxx", 
+  "ver": "latest", 
+  "name": "AT24CXX"
+ }
+]
