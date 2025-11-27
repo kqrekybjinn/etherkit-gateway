@@ -5,9 +5,9 @@
 /* 请使用 scripts/onenet_token.py 生成 Token */
 #define ONENET_HOST        "mqtts.heclouds.com"
 #define ONENET_PORT        "1883"
-#define ONENET_PROD_ID     "4cqPeql2a4"/* 产品 ID */
-#define ONENET_DEV_NAME    "gate"     /* 设备名称 */
-#define ONENET_TOKEN       "version=2018-10-31&res=products%2F4cqPeql2a4%2Fdevices%2Fgate&et=1795737600&method=md5&sign=RaBFQ5yUFGYhVZ1JkiAtNw%3D%3D" /* Token */
+#define ONENET_PROD_ID    
+#define ONENET_DEV_NAME       /* 设备名称 */
+#define ONENET_TOKEN      
 /* =================================================== */
 
 /* OneNET 物模型上报 Topic */
