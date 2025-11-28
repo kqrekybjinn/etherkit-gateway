@@ -1259,6 +1259,10 @@ FSP Configuration
     Write Protect Enable: Disabled
     Multiplex Interrupt: Disabled
     
+  Module "Watchdog (r_wdt)"
+    Parameter Checking: Default (BSP)
+    Multiplex Interrupt: Disabled
+    
   HAL
     Instance "g_ioport I/O Port (r_ioport)"
       General: Name: g_ioport
@@ -2068,4 +2072,12 @@ FSP Configuration
       ELC: NONSAFTY GPT event F: Trigger Source: Disabled
       ELC: NONSAFTY GPT event G: Trigger Source: Disabled
       ELC: NONSAFTY GPT event H: Trigger Source: Disabled
+      
+    Instance "g_wdt Watchdog (r_wdt)"
+      Name: g_wdt
+      Timeout: 16,384 Cycles
+      Clock Division Ratio: PCLK/8192
+      Window Start Position: 100 (Window Position Not Specified)
+      Window End Position: 0 (Window Position Not Specified)
+      WDT Callback: NULL
       

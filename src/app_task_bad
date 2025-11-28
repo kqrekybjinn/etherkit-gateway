@@ -1,0 +1,264 @@
+/*
+ * Copyright (c) 2024, RT-Thread Development Team
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Change Logs:
+ * Date           Author       Notes
+ * 2024-11-27     Gateway      First version
+ */
+
+#include <rtthread.h>
+#include <rtdevice.h>
+#include <board.h>
+#include <string.h> /* for memset */
+#include "mqttclient.h"
+#include "onenet_config.h"
+#include "onenet_app.h"
+#include "hal_data.h"
+
+#define CAN_DEV_NAME       "canfd0"
+#define ADC_DEV_NAME       "adc0"
+#define ADC_DEV_CHANNEL    0
+#define RS485_DEV_NAME     "uart5"
+
+/* 信号量 */
+static struct rt_semaphore can_rx_sem;
+static struct rt_semaphore rs485_rx_sem;
+
+/* CAN 接收回调 */
+static rt_err_t can_rx_callback(rt_device_t dev, rt_size_t size)
+{
+    rt_sem_release(&can_rx_sem);
+    return RT_EOK;
+}
+
+/* RS485 接收回调 */
+void rs485_callback(uart_callback_args_t * p_args)
+{
+    rt_interrupt_enter();
+    c_struct.serial_flag=1;
+    switch(p_args->event)
+    {
+        /*接收数据时将数据打印出来*/
+        case UART_EVENT_RX_CHAR:
+          {
+            rt_kprintf("%d\n", p_args->data);
+            break;
+          }
+        default:
+            break;
+    }
+    rt_interrupt_leave();
+}
+
+/* FSP UART 回调函数 (解决 undefined reference 错误) */
+void rs485_callback(uart_callback_args_t *p_args)
+{
+    /* 处理 RS485 相关中断事件，如发送完成、接收错误等 */
+    /* 如果使用 RT-Thread 串口驱动，数据接收通常由驱动层的 ISR 处理 */
+}
+
+/* CAN 处理线程 */
+static void can_thread_entry(void *parameter)
+{
+    rt_device_t dev = (rt_device_t)parameter;
+    struct rt_can_msg rxmsg = {0};
+    extern mqtt_client_t *kawaii_client; /* 引用全局客户端 */
+
+    while (1)
+    {
+        /* 等待 MQTT 客户端初始化完成 */
+        if (kawaii_client == NULL || kawaii_client->mqtt_client_state != CLIENT_STATE_CONNECTED) {
+            rt_thread_mdelay(1000);
+            continue;
+        }
+
+        rxmsg.hdr_index = -1;
+        if (rt_sem_take(&can_rx_sem, RT_WAITING_FOREVER) == RT_EOK)
+        {
+            if (rt_device_read(dev, 0, &rxmsg, sizeof(rxmsg)) > 0)
+            {
+                /* 使用 onenet_app 模块上报数据 */
+                onenet_upload_can(kawaii_client, rxmsg.id, rxmsg.data, rxmsg.len);
+            }
+        }
+    }
+}
+
+/* 边缘计算模型：滑动窗口滤波 + 阈值报警 */
+#define FILTER_WINDOW_SIZE 10
+#define REPORT_INTERVAL_MS 10000  /* 正常上报周期 10秒 */
+#define ALARM_HIGH_THRESHOLD 2.5f /* 模拟：高于 2.5V 报警 */
+#define ALARM_LOW_THRESHOLD  0.5f /* 模拟：低于 0.5V 报警 */
+#define ALARM_LED_PIN        BSP_IO_PORT_14_PIN_3 /* 复用 LED_PIN_0 作为报警灯 */
+
+typedef struct {
+    float buffer[FILTER_WINDOW_SIZE];
+    rt_uint8_t index;
+    rt_uint8_t count;
+    float sum;
+    float average;
+    rt_tick_t last_report_tick;
+} Edge_ADC_Model;
+
+static void edge_model_init(Edge_ADC_Model *model) {
+    memset(model, 0, sizeof(Edge_ADC_Model));
+}
+
+static void edge_model_input(Edge_ADC_Model *model, float new_val) {
+    /* 移除旧值 */
+    if (model->count >= FILTER_WINDOW_SIZE) {
+        model->sum -= model->buffer[model->index];
+    } else {
+        model->count++;
+    }
+    
+    /* 加入新值 */
+    model->buffer[model->index] = new_val;
+    model->sum += new_val;
+    model->index = (model->index + 1) % FILTER_WINDOW_SIZE;
+    
+    /* 计算平均值 */
+    model->average = model->sum / model->count;
+}
+
+/* 传感器采集线程 (ADC) */
+static void sensor_thread_entry(void *parameter)
+{
+    rt_adc_device_t adc_dev = (rt_adc_device_t)rt_device_find(ADC_DEV_NAME);
+    extern mqtt_client_t *kawaii_client; /* 引用全局客户端 */
+    
+    /* 初始化报警 LED */
+    rt_pin_mode(ALARM_LED_PIN, PIN_MODE_OUTPUT);
+    rt_pin_write(ALARM_LED_PIN, PIN_LOW);
+
+    /* 初始化边缘模型 */
+    Edge_ADC_Model adc_model;
+    edge_model_init(&adc_model);
+
+    if (adc_dev == RT_NULL)
+    {
+        rt_kprintf("ADC device %s not found!\n", ADC_DEV_NAME);
+        return;
+    }
+
+    rt_adc_enable(adc_dev, ADC_DEV_CHANNEL);
+
+    while (1)
+    {
+        if (kawaii_client == NULL || kawaii_client->mqtt_client_state != CLIENT_STATE_CONNECTED) {
+            rt_thread_mdelay(1000);
+            continue;
+        }
+
+        rt_uint32_t value = rt_adc_read(adc_dev, ADC_DEV_CHANNEL);
+        float voltage = (float)value * 3.3f / 4096.0f;
+        
+        edge_model_input(&adc_model, voltage);
+
+        if (voltage > ALARM_HIGH_THRESHOLD || voltage < ALARM_LOW_THRESHOLD) {
+             rt_kprintf("[Edge] Alarm! Voltage: %.2fV (Threshold: %.1f-%.1fV)\n", voltage, ALARM_LOW_THRESHOLD, ALARM_HIGH_THRESHOLD);           
+             rt_pin_write(ALARM_LED_PIN, PIN_HIGH);
+             onenet_upload_adc(kawaii_client, voltage, value); 
+             
+             rt_thread_mdelay(1000); 
+             continue;
+        }
+        else
+        {
+             /* 正常状态：熄灭报警灯 */
+             rt_pin_write(ALARM_LED_PIN, PIN_LOW);
+        }
+
+        if (rt_tick_get() - adc_model.last_report_tick > 10000) { // 10000 ticks = 10s
+             rt_kprintf("[Edge] Report Average: %.2fV (Window: %d)\n", adc_model.average, adc_model.count);
+             /* 正常时上报平均值 */
+             onenet_upload_adc(kawaii_client, adc_model.average, (int32_t)(adc_model.average * 4096.0f / 3.3f)); 
+             adc_model.last_report_tick = rt_tick_get();
+        }
+
+        rt_thread_mdelay(1000); /* 1秒采集一次，用于更新滑动窗口 */
+    }
+}
+
+/* RS485 (UART) 接收线程 */
+static void rs485_thread_entry(void *parameter)
+{
+    rt_device_t serial = (rt_device_t)parameter;
+    char ch;
+    
+    while (1)
+    {
+        /* 等待数据到达 */
+        if (rt_sem_take(&rs485_rx_sem, RT_WAITING_FOREVER) == RT_EOK)
+        {
+            /* 循环读取直到缓冲区为空 */
+            while (rt_device_read(serial, 0, &ch, 1) > 0)
+            {
+                /* 这里可以处理接收到的字节，例如组包解析 Modbus */
+                /* 暂时只打印出来调试 */
+                // rt_kprintf("RS485 Rx: %02X\n", ch);
+            }
+        }
+    }
+}
+
+/* 应用初始化入口 */
+int app_task_init(void)
+{
+    rt_err_t res;
+
+    /* 1. 初始化 CAN */
+    rt_device_t can_dev = rt_device_find(CAN_DEV_NAME);
+    if (can_dev)
+    {
+        rt_sem_init(&can_rx_sem, "can_sem", 0, RT_IPC_FLAG_FIFO);
+        rt_device_set_rx_indicate(can_dev, can_rx_callback);
+        res = rt_device_open(can_dev, RT_DEVICE_FLAG_INT_TX | RT_DEVICE_FLAG_INT_RX);
+        if (res == RT_EOK)
+        {
+            rt_thread_t tid = rt_thread_create("app_can", can_thread_entry, can_dev, 2048, 20, 10);
+            if (tid) rt_thread_startup(tid);
+        }
+    }
+    else
+    {
+        rt_kprintf("CAN device not found, skip.\n");
+    }
+
+    /* 2. 初始化 ADC 采集任务 */
+    rt_thread_t adc_tid = rt_thread_create("app_adc", sensor_thread_entry, RT_NULL, 2048, 21, 10);
+    if (adc_tid) rt_thread_startup(adc_tid);
+
+    /* 3. 初始化 RS485 */
+    rt_device_t rs485_dev = rt_device_find(RS485_DEV_NAME);
+    if (rs485_dev)
+    {
+        /* 配置串口参数：9600, 8N1 */
+        struct serial_configure config = RT_SERIAL_CONFIG_DEFAULT;
+        config.baud_rate = BAUD_RATE_9600;
+        config.data_bits = DATA_BITS_8;
+        config.stop_bits = STOP_BITS_1;
+        config.parity    = PARITY_NONE;
+        rt_device_control(rs485_dev, RT_DEVICE_CTRL_CONFIG, &config);
+
+        rt_sem_init(&rs485_rx_sem, "485_sem", 0, RT_IPC_FLAG_FIFO);
+        rt_device_set_rx_indicate(rs485_dev, rs485_rx_callback);
+        
+        res = rt_device_open(rs485_dev, RT_DEVICE_FLAG_INT_RX);
+        if (res == RT_EOK)
+        {
+            rt_thread_t rs485_tid = rt_thread_create("app_485", rs485_thread_entry, rs485_dev, 2048, 22, 10);
+            if (rs485_tid) rt_thread_startup(rs485_tid);
+        }
+    }
+    else
+    {
+        rt_kprintf("RS485 device %s not found!\n", RS485_DEV_NAME);
+    }
+
+    return 0;
+}
+/* 导出命令，方便在 Shell 中手动启动测试 */
+MSH_CMD_EXPORT(app_task_init, Start application tasks);

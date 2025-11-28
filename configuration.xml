@@ -718,6 +718,10 @@
       <description>Board support package for RZN2L - FSP Data</description>
       <originalPack>Renesas.RZN_mcu_rzn2l.2.2.0.pack</originalPack>
     </component>
+    <component apiversion="" class="HAL Drivers" condition="" group="all" subgroup="r_wdt" variant="" vendor="Renesas" version="2.2.0">
+      <description>Watchdog Timer</description>
+      <originalPack>Renesas.RZN.2.2.0.pack</originalPack>
+    </component>
   </raComponentSelection>
   <raElcConfiguration/>
   <raIcuConfiguration/>
@@ -1531,6 +1535,14 @@
       <property id="module.driver.timer.elc_trigger_nonsafty_event_g" value="_disabled"/>
       <property id="module.driver.timer.elc_trigger_nonsafty_event_h" value="_disabled"/>
     </module>
+    <module id="module.driver.watchdog_on_wdt.1811497968">
+      <property id="module.driver.watchdog.name" value="g_wdt"/>
+      <property id="module.driver.watchdog.timeout" value="module.driver.watchdog.timeout.16384"/>
+      <property id="module.driver.watchdog.clock_division" value="module.driver.watchdog.clock_division.8192"/>
+      <property id="module.driver.watchdog.window_start" value="module.driver.watchdog.window_start.100"/>
+      <property id="module.driver.watchdog.window_end" value="module.driver.watchdog.window_end.0"/>
+      <property id="module.driver.watchdog.wdt_callback" value="NULL"/>
+    </module>
     <context id="_hal.0">
       <stack module="module.driver.ioport_on_ioport.0"/>
       <stack module="module.bsp.memory_config.0"/>
@@ -1562,10 +1574,15 @@
       <stack module="module.driver.timer_on_gpt.374405453"/>
       <stack module="module.driver.timer_on_gpt.1046772589"/>
       <stack module="module.driver.timer_on_gpt.266195985"/>
+      <stack module="module.driver.watchdog_on_wdt.1811497968"/>
     </context>
     <config id="config.driver.ether_selector">
       <property id="config.driver.ether_selector.param_checking_enable" value="config.driver.ether_selector.param_checking_enable.bsp"/>
       <property id="module.driver.ether_selector.mode" value="module.driver.ether_selector.mode.0"/>
+    </config>
+    <config id="config.driver.wdt">
+      <property id="config.driver.wdt.param_checking_enable" value="config.driver.wdt.param_checking_enable.bsp"/>
+      <property id="config.driver.wdt.multiplex_interrupt" value="config.driver.wdt.multiplex_interrupt.disabled"/>
     </config>
     <config id="config.driver.rtc">
       <property id="config.driver.rtc.param_checking_enable" value="config.driver.rtc.param_checking_enable.bsp"/>

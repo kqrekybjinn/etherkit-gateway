@@ -9,26 +9,30 @@
 #define LED_PIN_0    BSP_IO_PORT_14_PIN_3
 #define LED_PIN_1    BSP_IO_PORT_14_PIN_0
 #define LED_PIN_2    BSP_IO_PORT_14_PIN_1
+#define LED_PIN_2    BSP_IO_PORT_14_PIN_1
+
+static uint32_t g_onenet_tx_count = 0;
+static uint32_t g_onenet_rx_count = 0;
 
 static void onenet_cmd_callback(void* client, message_data_t* msg)
 {
     (void) client;
     char *payload = (char*)msg->message->payload;
-    KAWAII_MQTT_LOG_I("Receive OneNET Command: %s", payload);
+    
+    g_onenet_rx_count++;
+    KAWAII_MQTT_LOG_I("Receive OneNET Command. Total Rx: %u", g_onenet_rx_count);
+    /* KAWAII_MQTT_LOG_I("Receive OneNET Command: %s", payload); */
 
-    /* 简单解析 JSON: 查找 "led_switch" */
     if (strstr(payload, "\"led_switch\":true") || strstr(payload, "\"led_switch\":1"))
     {
         KAWAII_MQTT_LOG_I("LED ON Command Received!");
-        rt_pin_write(LED_PIN_0, PIN_HIGH);
-        rt_pin_write(LED_PIN_1, PIN_HIGH);
+        /* 仅控制 LED 3 (OneNET) */
         rt_pin_write(LED_PIN_2, PIN_HIGH);
     }
     else if (strstr(payload, "\"led_switch\":false") || strstr(payload, "\"led_switch\":0"))
     {
         KAWAII_MQTT_LOG_I("LED OFF Command Received!");
-        rt_pin_write(LED_PIN_0, PIN_LOW);
-        rt_pin_write(LED_PIN_1, PIN_LOW);
+        /* 仅控制 LED 3 (OneNET) */
         rt_pin_write(LED_PIN_2, PIN_LOW);
     }
 
@@ -64,7 +68,9 @@ static void onenet_cmd_callback(void* client, message_data_t* msg)
 static void onenet_post_reply_callback(void* client, message_data_t* msg)
 {
     (void) client;
-    KAWAII_MQTT_LOG_I("OneNET Post Reply: %s", (char*)msg->message->payload);
+    g_onenet_rx_count++;
+    KAWAII_MQTT_LOG_I("OneNET Post Reply. Total Rx: %u", g_onenet_rx_count);
+    /* KAWAII_MQTT_LOG_I("OneNET Post Reply: %s", (char*)msg->message->payload); */
 }
 
 void onenet_app_init(mqtt_client_t *client)
@@ -106,13 +112,16 @@ void onenet_upload_can(mqtt_client_t *client, uint32_t can_id, uint8_t *data, ui
     msg.qos = QOS1; /* 使用 QOS1 确保送达 */
     msg.payload = (void *)payload;
     mqtt_publish(client, ONENET_TOPIC_PROP_POST, &msg);
-    rt_kprintf("[CAN] Pub: %s\n", payload);
+    
+    g_onenet_tx_count++;
+    rt_kprintf("[CAN] Pub success. Total Tx: %u\n", g_onenet_tx_count);
+    /* rt_kprintf("[CAN] Pub: %s\n", payload); */
 }
 
-void onenet_upload_adc(mqtt_client_t *client, float voltage, int32_t raw_value)
+int onenet_upload_adc(mqtt_client_t *client, float voltage, int32_t raw_value)
 {
     if (client == NULL || client->mqtt_client_state != CLIENT_STATE_CONNECTED) {
-        return;
+        return -1;
     }
 
     /* RT-Thread 的 rt_snprintf 默认可能不支持浮点数 %f */
@@ -130,8 +139,14 @@ void onenet_upload_adc(mqtt_client_t *client, float voltage, int32_t raw_value)
 
     mqtt_message_t msg;
     memset(&msg, 0, sizeof(msg));
-    msg.qos = QOS1; /* 使用 QOS1 确保送达 */
+    msg.qos = QOS0; /* 改为 QOS0，提高发送成功率，避免 ACK 等待问题 */
     msg.payload = (void *)payload;
-    mqtt_publish(client, ONENET_TOPIC_PROP_POST, &msg);
-    rt_kprintf("[ADC] Pub: %s\n", payload);
+    
+    int ret = mqtt_publish(client, ONENET_TOPIC_PROP_POST, &msg);
+    if (ret == 0) {
+        g_onenet_tx_count++;
+        rt_kprintf("[ADC] Pub success. Total Tx: %u\n", g_onenet_tx_count);
+    }
+    /* rt_kprintf("[ADC] Pub: %s\n", payload); */
+    return ret;
 }

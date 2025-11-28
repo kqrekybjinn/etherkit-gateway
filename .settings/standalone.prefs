@@ -1,4 +1,4 @@
-#Thu Nov 27 13:59:28 CST 2025
+#Fri Nov 28 17:06:45 CST 2025
 com.renesas.cdt.ddsc.content/com.renesas.cdt.ddsc.content.defaultlinkerscript=script/fsp_xspi0_boot.ld
 com.renesas.cdt.ddsc.contentgen.options/options/suppresswarningspaths=
 com.renesas.cdt.ddsc.packs.componentfiles/Arm\#\#CMSIS\#\#CMSIS5\#\#Core\#\#\#\#5.7.0+renesas.3.fsp.2.2.0/all=1441545198,rzn/arm/CMSIS_5/LICENSE.txt|4247764709,rzn/arm/CMSIS_5/CMSIS/Core_R/Include/cmsis_gcc.h|1135074086,rzn/arm/CMSIS_5/CMSIS/Core_R/Include/core_cr52.h|510668081,rzn/arm/CMSIS_5/CMSIS/Core_R/Include/cmsis_iccarm.h|4245531541,rzn/arm/CMSIS_5/CMSIS/Core_R/Include/cmsis_compiler.h|1887099957,rzn/arm/CMSIS_5/CMSIS/Core_R/Include/cmsis_cp15.h|3334069041,rzn/arm/CMSIS_5/CMSIS/Core_R/Include/cmsis_version.h
@@ -39,6 +39,8 @@ com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_rt
 com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_rtc\#\#\#\#2.2.0/libraries=
 com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_sci_uart\#\#\#\#2.2.0/all=2555335099,rzn/fsp/src/r_sci_uart/r_sci_uart.c|257214413,rzn/fsp/inc/instances/r_sci_uart.h|300185683,rzn/fsp/inc/api/r_uart_api.h|2744795673,rzn/fsp/inc/api/r_transfer_api.h
 com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_sci_uart\#\#\#\#2.2.0/libraries=
+com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_wdt\#\#\#\#2.2.0/all=1551751864,rzn/fsp/src/r_wdt/r_wdt.c|1699111997,rzn/fsp/inc/instances/r_wdt.h|3136440545,rzn/fsp/inc/api/r_wdt_api.h
+com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_wdt\#\#\#\#2.2.0/libraries=
 com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_xspi_hyper\#\#\#\#2.2.0/all=285349818,rzn/fsp/src/r_xspi_hyper/r_xspi_hyper.c|1487122699,rzn/fsp/inc/instances/r_xspi_hyper.h|4112762073,rzn/fsp/inc/api/r_hyperbus_api.h
 com.renesas.cdt.ddsc.packs.componentfiles/Renesas\#\#HAL\ Drivers\#\#all\#\#r_xspi_hyper\#\#\#\#2.2.0/libraries=
 com.renesas.cdt.ddsc.project.standalone.projectgenerationoptions/isCpp=false

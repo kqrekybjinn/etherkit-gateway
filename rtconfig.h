@@ -95,6 +95,7 @@
 #define RT_USING_ADC
 #define RT_USING_RTC
 #define RT_USING_ALARM
+#define RT_USING_WDT
 #define RT_USING_PIN
 
 /* Using USB */
@@ -442,6 +443,7 @@
 /* On-chip Peripheral Drivers */
 
 #define BSP_USING_GPIO
+#define BSP_USING_WDT
 #define BSP_USING_ONCHIP_RTC
 #define BSP_USING_UART
 #define BSP_USING_UART0

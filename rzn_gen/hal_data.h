@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "bsp_api.h"
 #include "common_data.h"
+#include "r_wdt.h"
+#include "r_wdt_api.h"
 #include "r_gpt.h"
 #include "r_timer_api.h"
 #include "r_canfd.h"
@@ -27,6 +29,16 @@
 #include "r_gmac.h"
 #include "r_ether_api.h"
 FSP_HEADER
+/** WDT on WDT Instance. */
+extern const wdt_instance_t g_wdt;
+
+/** Access the WDT instance using these structures when calling API functions directly (::p_api is not used). */
+extern wdt_instance_ctrl_t g_wdt_ctrl;
+extern const wdt_cfg_t g_wdt_cfg;
+
+#ifndef NULL
+void NULL(wdt_callback_args_t * p_args);
+#endif
 /** Timer on GPT Instance. */
 extern const timer_instance_t g_timer17;
 

@@ -13,6 +13,26 @@
 #else
 #define ETHER_BUFFER_PLACE_IN_SECTION
 #endif
+wdt_instance_ctrl_t g_wdt_ctrl;
+
+const wdt_cfg_t g_wdt_cfg =
+{
+    .timeout = WDT_TIMEOUT_16384,
+    .clock_division = WDT_CLOCK_DIVISION_8192,
+    .window_start = WDT_WINDOW_START_100,
+    .window_end = WDT_WINDOW_END_0,
+    .reset_control = WDT_RESET_CONTROL_NMI,
+    .stop_control = WDT_STOP_CONTROL_DISABLE,
+    .p_callback = NULL,
+};
+
+/* Instance structure to use this module. */
+const wdt_instance_t g_wdt =
+{
+    .p_ctrl        = &g_wdt_ctrl,
+    .p_cfg         = &g_wdt_cfg,
+    .p_api         = &g_wdt_on_wdt
+};
 gpt_instance_ctrl_t g_timer17_ctrl;
 #if 0
 const gpt_extended_pwm_cfg_t g_timer17_pwm_extend =
