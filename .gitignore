@@ -1,0 +1,40 @@
+/RTE
+/Listings
+/Objects
+/Debug
+/build
+/makefile.targets
+/rtconfig.pyc
+/rt-thread
+/libraries
+/project.custom_argvars
+/template.custom_argvars
+/.vscode
+/__pycache
+/settings
+/rtconfig_preinc.h
+
+# Local secrets (do not commit)
+/src/onenet_secrets.h
+/er.name
+
+# IDE metadata (do not commit)
+/.project
+/.cproject
+/.settings/
+
+# Renesas tooling outputs (often machine-specific)
+/.secure_azone
+/.secure_rzone
+/.secure_xml
+/.api_xml
+
+# Common build artifacts
+*.o
+*.a
+*.d
+*.elf
+*.out
+*.hex
+*.bin
+*.map

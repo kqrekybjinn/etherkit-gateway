@@ -1,0 +1,15 @@
+// generated extended command line file - do not edit
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn_gen"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn/fsp/inc"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn_cfg/fsp_cfg"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn_cfg/fsp_cfg/bsp"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn/arm/CMSIS_5/CMSIS/Core_R/Include"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn/arm/CMSIS_5/CMSIS/Core_A/Include"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn/fsp/inc/api"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn/fsp/inc/instances"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/src"
+-I"C:\Softwares\RT-ThreadStudio\workspace\EtherKit\etherkit_factory/rzn/fsp/src/bsp/mcu/all/cr"
+-D_RZN_CORE=CR52_0
+-D_RENESAS_RZN_
+-D_RZN_ORDINAL=1

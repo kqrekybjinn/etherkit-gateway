@@ -1,0 +1,78 @@
+{
+  "properties": [
+    {
+      "identifier": "voltage",
+      "name": "电压值",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "ADC采集的电压值",
+      "dataType": {
+        "type": "float",
+        "specs": {
+          "min": "0",
+          "max": "3.3",
+          "unit": "V",
+          "step": "0.01"
+        }
+      }
+    },
+    {
+      "identifier": "raw_adc",
+      "name": "ADC原始值",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "ADC原始采样数据",
+      "dataType": {
+        "type": "int32",
+        "specs": {
+          "min": "0",
+          "max": "4096",
+          "unit": "",
+          "step": "1"
+        }
+      }
+    },
+    {
+      "identifier": "can_id",
+      "name": "CAN_ID",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "CAN总线消息ID",
+      "dataType": {
+        "type": "string",
+        "specs": {
+          "length": "32"
+        }
+      }
+    },
+    {
+      "identifier": "can_data",
+      "name": "CAN_Data",
+      "functionType": "u",
+      "accessMode": "r",
+      "desc": "CAN总线消息数据",
+      "dataType": {
+        "type": "string",
+        "specs": {
+          "length": "255"
+        }
+      }
+    },
+    {
+      "identifier": "led_switch",
+      "name": "LED开关",
+      "functionType": "u",
+      "accessMode": "rw",
+      "desc": "控制板载LED灯开关",
+      "dataType": {
+        "type": "bool",
+        "specs": {
+          "true": "开启",
+          "false": "关闭"
+        }
+      }
+    }
+  ],
+  "events": [],
+  "services": []
+}
